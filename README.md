@@ -1,16 +1,16 @@
-# Sales Performance Dashboard
+Live Demo:
+https://rsyuvrajsingh.github.io/sales-performance-dashboard/
 
-Executive business intelligence dashboard for retail sales analytics.
-
-## Features
-- Revenue KPIs
+Features:
+- KPI Cards
+- Revenue Analytics
 - Regional Sales Analysis
-- Product Performance
-- Sales Team Leaderboard
-- Interactive Charts
-- Business Insights
+- Product Performance Tracking
+- Interactive Filters
+- Sales Leaderboard
+- AI Business Insights
 
-## Technologies
+Built With:
 - HTML
 - CSS
 - JavaScript
