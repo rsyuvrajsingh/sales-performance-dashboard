@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sales Performance Dashboard — Executive-level analytics for retail business performance tracking." />
+  <title>Sales Performance Dashboard | RetailPulse Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header id="dashboard-header">
+    <div class="header-left">
+      <div class="logo-mark" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="10" fill="url(#logoGrad)" />
+          <path d="M10 24 L14 16 L18 20 L22 12 L26 18" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div>
+        <h1>RetailPulse <span class="header-accent">Analytics</span></h1>
+        <p class="header-sub">Sales Performance Dashboard &mdash; FY 2025-26</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="live-badge" id="live-badge"><span class="live-dot"></span> Live</span>
+      <span class="header-date" id="header-date"></span>
+    </div>
+  </header>
+
+  <!-- ==================== FILTERS ==================== -->
+  <section id="filters-bar" class="glass-panel" aria-label="Dashboard Filters">
+    <div class="filter-group">
+      <label for="filter-date-range">Date Range</label>
+      <select id="filter-date-range">
+        <option value="fy2025" selected>FY 2025-26 (Full Year)</option>
+        <option value="q1">Q1 (Apr – Jun)</option>
+        <option value="q2">Q2 (Jul – Sep)</option>
+        <option value="q3">Q3 (Oct – Dec)</option>
+        <option value="q4">Q4 (Jan – Mar)</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-region">Region</label>
+      <select id="filter-region">
+        <option value="all" selected>All Regions</option>
+        <option value="north">North</option>
+        <option value="south">South</option>
+        <option value="west">West</option>
+        <option value="east">East</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-category">Product Category</label>
+      <select id="filter-category">
+        <option value="all" selected>All Categories</option>
+        <option value="electronics">Electronics</option>
+        <option value="appliances">Home Appliances</option>
+      </select>
+    </div>
+    <button id="btn-apply-filters" class="btn-primary">Apply Filters</button>
+  </section>
+
+  <main id="dashboard-main">
+
+    <!-- ==================== KPI CARDS ==================== -->
+    <section id="kpi-section" aria-label="Key Performance Indicators">
+      <div class="kpi-card" id="kpi-revenue">
+        <div class="kpi-icon kpi-icon--revenue">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Revenue</span>
+          <span class="kpi-value" data-target="48250000">₹0</span>
+          <span class="kpi-change positive">▲ 14.2% vs last year</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-orders">
+        <div class="kpi-icon kpi-icon--orders">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Orders</span>
+          <span class="kpi-value" data-target="12845" data-prefix="">0</span>
+          <span class="kpi-change positive">▲ 8.6% vs last year</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-aov">
+        <div class="kpi-icon kpi-icon--aov">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Avg. Order Value</span>
+          <span class="kpi-value" data-target="3756">₹0</span>
+          <span class="kpi-change positive">▲ 5.1% vs last year</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-margin">
+        <div class="kpi-icon kpi-icon--margin">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Profit Margin</span>
+          <span class="kpi-value" data-target="18.4" data-suffix="%">0%</span>
+          <span class="kpi-change neutral">— Stable year-over-year</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CHARTS ROW ==================== -->
+    <section id="charts-section" aria-label="Revenue & Regional Charts">
+      <div class="chart-card chart-card--wide glass-panel" id="monthly-revenue-card">
+        <div class="chart-header">
+          <h2>Monthly Revenue Trend</h2>
+          <div class="chart-toggle" id="chart-type-toggle">
+            <button class="toggle-btn active" data-type="bar">Bar</button>
+            <button class="toggle-btn" data-type="line">Line</button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card glass-panel" id="regional-sales-card">
+        <div class="chart-header">
+          <h2>Regional Sales Split</h2>
+        </div>
+        <div class="chart-body chart-body--doughnut">
+          <canvas id="regionalSalesChart"></canvas>
+        </div>
+        <div id="regional-legend" class="custom-legend"></div>
+      </div>
+    </section>
+
+    <!-- ==================== PRODUCTS & SALES REPS ROW ==================== -->
+    <section id="details-section" aria-label="Products & Sales Representatives">
+
+      <!-- Top Products -->
+      <div class="detail-card glass-panel" id="top-products-card">
+        <div class="detail-header">
+          <h2>Top Performing Products</h2>
+        </div>
+        <div class="table-wrapper">
+          <table id="products-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Revenue</th>
+                <th>Units Sold</th>
+                <th>Profit</th>
+                <th>Margin</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sales Reps -->
+      <div class="detail-card glass-panel" id="sales-reps-card">
+        <div class="detail-header">
+          <h2>Sales Team Leaderboard</h2>
+        </div>
+        <div id="sales-reps-list"></div>
+      </div>
+    </section>
+
+    <!-- ==================== PRODUCT PERFORMANCE CHART ==================== -->
+    <section id="product-chart-section" aria-label="Product Revenue vs Profit Chart">
+      <div class="chart-card chart-card--full glass-panel" id="product-chart-card">
+        <div class="chart-header">
+          <h2>Product Revenue vs Profit Comparison</h2>
+        </div>
+        <div class="chart-body">
+          <canvas id="productComparisonChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== AI INSIGHTS ==================== -->
+    <section id="insights-section" aria-label="AI Business Insights">
+      <div class="insights-panel glass-panel" id="ai-insights-panel">
+        <div class="insights-header">
+          <div class="insights-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><line x1="10" y1="22" x2="14" y2="22"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          </div>
+          <h2>AI-Powered Business Insights</h2>
+          <span class="ai-badge">Powered by Analytics Engine</span>
+        </div>
+        <div id="insights-grid" class="insights-grid"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer id="dashboard-footer">
+    <p>&copy; 2026 RetailPulse Analytics. Confidential — For internal use only.</p>
+    <p class="footer-note">Data refreshed as of <span id="footer-date"></span></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
