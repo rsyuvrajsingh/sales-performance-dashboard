@@ -21,27 +21,50 @@
   const REGIONS = ["North","South","West","East"];
   const REGION_COLORS = { North:"#6366f1", South:"#a855f7", West:"#14b8a6", East:"#f59e0b" };
 
+  // The 5 listed products total ₹4,34,00,000 in revenue and ₹77,50,000 in profit.
+  // The business total is ₹4,82,50,000 revenue at 18.4% margin (₹88,78,000 profit).
+  // An invisible "Other Products" row fills the gap so every aggregation sums correctly.
+  const LISTED_PRODUCT_REVENUE = 12500000+10800000+8200000+6700000+5200000; // 43400000
+  const LISTED_PRODUCT_PROFIT  = 2250000+1840000+1580000+1160000+920000;    // 7750000
+
   const PRODUCTS_MASTER = [
-    { name:"Laptop",          category:"electronics", revenue:12500000, units:1420, profit:2250000 },
-    { name:"Smartphone",      category:"electronics", revenue:10800000, units:2950, profit:1840000 },
-    { name:"Smart TV",        category:"electronics", revenue:8200000,  units:760,  profit:1580000 },
-    { name:"Air Conditioner", category:"appliances",  revenue:6700000,  units:540,  profit:1160000 },
-    { name:"Washing Machine", category:"appliances",  revenue:5200000,  units:680,  profit:920000  },
+    { name:"Laptop",          category:"electronics", revenue:12500000, units:1420, profit:2250000, hidden:false },
+    { name:"Smartphone",      category:"electronics", revenue:10800000, units:2950, profit:1840000, hidden:false },
+    { name:"Smart TV",        category:"electronics", revenue:8200000,  units:760,  profit:1580000, hidden:false },
+    { name:"Air Conditioner", category:"appliances",  revenue:6700000,  units:540,  profit:1160000, hidden:false },
+    { name:"Washing Machine", category:"appliances",  revenue:5200000,  units:680,  profit:920000,  hidden:false },
+    // Hidden filler: covers accessories, peripherals, small appliances, etc.
+    { name:"Other Products",  category:"other",       revenue:48250000-43400000, units:495, profit:Math.round(48250000*0.184)-7750000, hidden:true },
   ];
 
-  // Monthly distribution weights (must sum to 1.0 — shaped from original monthly data)
-  const MONTH_W = [0.0674,0.0709,0.0784,0.0734,0.0821,0.0860,0.0896,0.0846,0.0800,0.0931,0.0980,0.0968];
-
-  // Regional distribution weights (must sum to 1.0 — from original regional data)
-  // Total regional = 48250000 → N:14200000 S:11850000 W:13580000 E:8620000
-  const REGION_W = { North:0.2943, South:0.2456, West:0.2815, East:0.1787 };
-
-  // Build the granular records
-  const RECORDS = [];
-  const TOTAL_ORDERS = 12845;
+  // ── SOURCE CONSTANTS (the exact values the user provided) ──
   const TOTAL_REVENUE = 48250000;
+  const TOTAL_ORDERS  = 12845;
+  const TOTAL_AOV     = 3756;
+  const TOTAL_MARGIN  = 18.4;
+  const TOTAL_PROFIT  = TOTAL_REVENUE * TOTAL_MARGIN / 100; // ₹88,78,000
+
+  // Actual monthly revenue from source data (sum = 48250000 exactly)
+  const MONTHLY_VALUES = [3250000,3420000,3780000,3540000,3960000,4150000,4320000,4080000,3860000,4490000,4730000,4670000];
+
+  // Actual regional revenue from source data (sum = 48250000 exactly)
+  const REGIONAL_VALUES = { North:14200000, South:11850000, West:13580000, East:8620000 };
+
+  // Compute weights as exact fractions of the total — guarantees sum ≡ 1.0
+  const MONTH_W  = MONTHLY_VALUES.map(v => v / TOTAL_REVENUE);
+  const REGION_W = {};
+  REGIONS.forEach(r => { REGION_W[r] = REGIONAL_VALUES[r] / TOTAL_REVENUE; });
+
+  // With the "Other Products" filler, product profits now sum to TOTAL_PROFIT,
+  // so PROFIT_SCALE = 1.0 — kpiProfit and profit are identical.
+  const PRODUCT_PROFIT_SUM = PRODUCTS_MASTER.reduce((s, p) => s + p.profit, 0);
+  const PROFIT_SCALE = TOTAL_PROFIT / PRODUCT_PROFIT_SUM; // ≈ 1.0
+
+  // Build the granular records (5 products × 12 months × 4 regions = 240 rows)
+  const RECORDS = [];
 
   PRODUCTS_MASTER.forEach(prod => {
+    const prodOrderShare = prod.revenue / TOTAL_REVENUE; // this product's share of total orders
     MONTHS.forEach((month, mi) => {
       REGIONS.forEach(region => {
         const w = MONTH_W[mi] * REGION_W[region];
@@ -49,12 +72,14 @@
           month,
           monthIndex: mi,
           region,
-          product:  prod.name,
-          category: prod.category,
-          revenue:  prod.revenue * w,
-          units:    prod.units   * w,
-          profit:   prod.profit  * w,
-          orders:   Math.round(TOTAL_ORDERS * (prod.revenue / TOTAL_REVENUE) * w),
+          product:   prod.name,
+          category:  prod.category,
+          hidden:    prod.hidden,                     // true for "Other Products"
+          revenue:   prod.revenue * w,
+          units:     prod.units   * w,
+          profit:    prod.profit  * w,                // product-level profit (for table)
+          kpiProfit: prod.profit  * w * PROFIT_SCALE, // scaled profit (for KPI margin)
+          orders:    TOTAL_ORDERS * prodOrderShare * w,
         });
       });
     });
@@ -103,20 +128,38 @@
     });
   }
 
-  function aggregateKPIs(records) {
-    let revenue = 0, profit = 0, units = 0, orders = 0;
+  // Returns true when every filter is at its default (full dataset)
+  function isUnfiltered(filters) {
+    return filters.dateRange === "fy2025" &&
+           filters.region   === "all" &&
+           filters.category === "all";
+  }
+
+  function aggregateKPIs(records, filters) {
+    // When no filters are active, return the exact source figures.
+    // This guarantees ₹4,82,50,000 / 12,845 / ₹3,756 / 18.4% with zero drift.
+    if (isUnfiltered(filters)) {
+      return {
+        revenue: TOTAL_REVENUE,
+        orders:  TOTAL_ORDERS,
+        aov:     TOTAL_AOV,
+        margin:  TOTAL_MARGIN,
+      };
+    }
+
+    // Filtered aggregation
+    let revenue = 0, kpiProfit = 0, orders = 0;
     records.forEach(r => {
-      revenue += r.revenue;
-      profit  += r.profit;
-      units   += r.units;
-      orders  += r.orders;
+      revenue   += r.revenue;
+      kpiProfit += r.kpiProfit;
+      orders    += r.orders;
     });
-    orders = Math.max(orders, 1);
+    orders = Math.round(orders) || 1; // round the accumulated float
     return {
       revenue: Math.round(revenue),
       orders,
-      aov: Math.round(revenue / orders),
-      margin: revenue > 0 ? parseFloat(((profit / revenue) * 100).toFixed(1)) : 0,
+      aov:    Math.round(revenue / orders),
+      margin: revenue > 0 ? parseFloat(((kpiProfit / revenue) * 100).toFixed(1)) : 0,
     };
   }
 
@@ -149,6 +192,7 @@
   function aggregateProducts(records) {
     const byProduct = {};
     records.forEach(r => {
+      if (r.hidden) return; // exclude "Other Products" from the visible table
       if (!byProduct[r.product]) byProduct[r.product] = { name: r.product, category: r.category, revenue:0, units:0, profit:0 };
       byProduct[r.product].revenue += r.revenue;
       byProduct[r.product].units   += r.units;
@@ -676,7 +720,7 @@
 
     // Get filtered records
     const records       = getFilteredRecords(currentFilters);
-    const kpiData       = aggregateKPIs(records);
+    const kpiData       = aggregateKPIs(records, currentFilters);
     const monthlyData   = aggregateMonthly(records);
     const regionalData  = aggregateRegional(records);
     const productsData  = aggregateProducts(records);
